@@ -42,14 +42,14 @@ public class CliApp
 
                     case "users:add": await UsersAddAsync(); break;
                     case "users:list": UsersList(); break;
-                    case "users:view": UsersView(args); break;
+                    case "users:view": await UsersView(args); break;    // <- await + async verzia
                     case "users:update": await UsersUpdateAsync(args); break;
                     case "users:delete": await UsersDeleteAsync(args); break;
                     case "users:find": UsersFind(args); break;
 
                     case "posts:add": await PostsAddAsync(); break;
                     case "posts:list": PostsList(args); break;
-                    case "posts:view": PostsView(args); break;
+                    case "posts:view": await PostsView(args); break;     // <- await + async verzia
                     case "posts:update": await PostsUpdateAsync(args); break;
                     case "posts:delete": await PostsDeleteAsync(args); break;
 
@@ -112,7 +112,11 @@ Available commands:
         var name = ReadNonEmpty();
         if (_users.GetManyAsync().Any(u => string.Equals(u.UserName, name, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException("This name is already taken");
-        var created = await _users.AddAsync(new User { UserName = name });
+
+        Console.Write("Password: ");
+        var password = ReadNonEmpty();
+
+        var created = await _users.AddAsync(new User { UserName = name, Password = password });
         Console.WriteLine($"User created with Id={created.Id}, UserName={created.UserName}");
     }
 
@@ -125,10 +129,10 @@ Available commands:
         foreach (var u in all) Console.WriteLine($"{u.Id,-6}| {u.UserName}");
     }
 
-    private void UsersView(string[] args)
+    private async Task UsersView(string[] args) // <- bolo void, teraz async Task
     {
         if (!TryParseIdArg(args, 1, out var id, "Usage: users:view <id>")) return;
-        var user = _users.GetSingleAsync(id).Result;
+        var user = await _users.GetSingleAsync(id); // <- odstránené .Result
         if (user is null) { Console.WriteLine("C."); return; }
 
         Console.WriteLine($"\nUser {user.Id}: {user.UserName}");
@@ -147,7 +151,7 @@ Available commands:
     private async Task UsersUpdateAsync(string[] args)
     {
         if (!TryParseIdArg(args, 1, out var id, "Usage: users:update <id>")) return;
-        var user = _users.GetSingleAsync(id).Result;
+        var user = await _users.GetSingleAsync(id); // <- odstránené .Result
         if (user is null) { Console.WriteLine("User was not find."); return; }
 
         Console.Write($"New name (current: {user.UserName}): ");
@@ -155,7 +159,12 @@ Available commands:
         if (_users.GetManyAsync().Any(u => u.Id != id && string.Equals(u.UserName, name, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException("User name is already taken.");
 
+        Console.Write("New password (leave empty to keep current): ");
+        var newPass = Console.ReadLine()?.Trim();
+
         user.UserName = name;
+        if (!string.IsNullOrWhiteSpace(newPass)) user.Password = newPass;
+
         await _users.UpdateAsync(user);
         Console.WriteLine("User updated.");
     }
@@ -208,11 +217,11 @@ Available commands:
         foreach (var p in all) Console.WriteLine($"{p.Id,-6}| {p.Title,-27}| {p.UserId}");
     }
 
-    private void PostsView(string[] args)
+    private async Task PostsView(string[] args) // <- bolo void, teraz async Task
     {
         if (!TryParseIdArg(args, 1, out var id, "Usage: posts:view <id>")) return;
 
-        var post = _posts.GetSingleAsync(id).Result;
+        var post = await _posts.GetSingleAsync(id); // <- odstránené .Result
         if (post is null) { Console.WriteLine("Post was not find."); return; }
 
         Console.WriteLine($"""
@@ -234,7 +243,7 @@ Comments:
     {
         if (!TryParseIdArg(args, 1, out var id, "Usage: posts:update <id>")) return;
 
-        var post = _posts.GetSingleAsync(id).Result;
+        var post = await _posts.GetSingleAsync(id); // <- odstránené .Result
         if (post is null) { Console.WriteLine("Post not found."); return; }
 
         Console.Write($"New Title (current: {post.Title}): "); var title = ReadNonEmpty();
@@ -293,7 +302,7 @@ Comments:
     {
         if (!TryParseIdArg(args, 1, out var id, "Usage: comments:update <id>")) return;
 
-        var comment = _comments.GetSingleAsync(id).Result;
+        var comment = await _comments.GetSingleAsync(id); // <- odstránené .Result
         if (comment is null) { Console.WriteLine("Comment not found."); return; }
 
         Console.Write($"New Body (current: {TrimTo(comment.Body, 25)}): "); var body = ReadNonEmpty();

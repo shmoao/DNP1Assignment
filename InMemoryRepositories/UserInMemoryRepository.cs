@@ -4,9 +4,14 @@ using RepositoryContracts;
 
 public class UserInMemoryRepository : IUserRepository
 {
-    
-    
-    private List<User> _users = [];
+
+
+    private List<User> _users = new()
+    {
+        new User { Id = 1, UserName = "Soma", Password = "soma123" },
+        new User { Id = 2, UserName = "Rebeca", Password = "rebeca123" },
+        new User { Id = 3, UserName = "Chris", Password = "chris123" }
+    };
     
     public Task<User> AddAsync(User user)
     {

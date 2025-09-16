@@ -4,7 +4,12 @@ using RepositoryContracts;
 
 public class PostInMemoryRepository : IPostRepository
 {
-    private List<Post> _posts = [];
+    private List<Post> _posts = new()
+    {
+        new Post { Id = 1, Title = "AAA", Body = "...", UserId = 1 },
+        new Post { Id = 2, Title = "BBB", Body = "...", UserId = 2 },
+        new Post { Id = 3, Title = "CCC", Body = "...", UserId = 1 }
+    };
     
     public Task<Post> AddAsync(Post post)
     {
