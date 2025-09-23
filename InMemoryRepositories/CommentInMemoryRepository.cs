@@ -50,7 +50,7 @@ public class CommentInMemoryRepository : ICommentRepository
         return Task.CompletedTask;
     }
 
-    public Task<Comment> GetSingleAsync(int id)
+    public Task<Comment?> GetSingleAsync(int id)
     {
         Comment? comment = _comments.SingleOrDefault(c => c.Id == id);
         return Task.FromResult(comment);

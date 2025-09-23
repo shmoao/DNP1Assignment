@@ -1,4 +1,4 @@
-﻿using InMemoryRepositories;
+﻿using FileRepositories;
 using RepositoryContracts;
 using CLI.UI;
 
@@ -8,9 +8,9 @@ namespace CLI
     {
         static async Task Main(string[] args)
         {
-            IUserRepository users = new UserInMemoryRepository();
-            IPostRepository posts = new PostInMemoryRepository();
-            ICommentRepository comments = new CommentInMemoryRepository();
+            IUserRepository users = new UserFileRepository();
+            IPostRepository posts = new PostFileRepository();
+            ICommentRepository comments = new CommentFileRepository();
 
             var app = new CliApp(users, posts, comments);
             await app.RunAsync();
