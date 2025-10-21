@@ -1,0 +1,40 @@
+### Users
+GET http://localhost:5180/api/users
+
+###
+GET http://localhost:5180/api/users/1
+
+###
+POST http://localhost:5180/api/users
+Content-Type: application/json
+
+{
+  "userName": "Alice",
+  "password": "alice1234"
+}
+
+### Posts
+GET http://localhost:5180/api/posts
+
+###
+POST http://localhost:5180/api/posts
+Content-Type: application/json
+
+{
+  "title": "Hello",
+  "body": "World",
+  "userId": 1
+}
+
+### Comments
+GET http://localhost:5180/api/comments
+
+###
+POST http://localhost:5180/api/comments
+Content-Type: application/json
+
+{
+  "body": "Nice post!",
+  "userId": 1,
+  "postId": 1
+}
