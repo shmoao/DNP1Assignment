@@ -11,6 +11,7 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
 var storage = builder.Configuration["Storage"] ?? "InMemory";
+
 if (storage.Equals("File", StringComparison.OrdinalIgnoreCase))
 {
     builder.Services.AddSingleton<IUserRepository, FileRepositories.UserFileRepository>();
