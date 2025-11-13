@@ -1,0 +1,154 @@
+﻿@page "/posts/{Id:int}"
+
+@using ApiContracts
+@using WebClient.HttpServices
+@inject IPostService PostService
+@inject IUserService UserService
+@inject ICommentService CommentService
+@inject NavigationManager Nav
+
+<h3>Post details</h3>
+
+@if (loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (post is null)
+{
+    <p class="text-danger">Post not found.</p>
+    <button class="btn btn-secondary" @onclick="GoBack">Back to posts</button>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">@post.Title</h4>
+            <h6 class="card-subtitle mb-2 text-muted">
+                Author: @(author is null ? $"User #{post.UserId}" : author.UserName)
+            </h6>
+            <p class="card-text">@post.Body</p>
+        </div>
+    </div>
+
+    <h5>Comments (@comments.Count)</h5>
+
+    @if (!comments.Any())
+    {
+        <p>No comments yet.</p>
+    }
+    else
+    {
+        <ul class="list-group mb-4">
+            @foreach (var c in comments)
+            {
+                <li class="list-group-item">
+                    <strong>User @c.UserId:</strong>
+                    <div>@c.Body</div>
+                </li>
+            }
+        </ul>
+    }
+
+    <h5>Add comment</h5>
+
+    <EditForm Model="newComment" OnValidSubmit="HandleAddComment">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">UserId</label>
+            <InputNumber class="form-control" @bind-Value="newComment.UserId" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Body</label>
+            <InputTextArea class="form-control" @bind-Value="newComment.Body" />
+        </div>
+
+        <button class="btn btn-primary" type="submit" disabled="@savingComment">
+            @(savingComment ? "Saving..." : "Add comment")
+        </button>
+        <button class="btn btn-secondary ms-2" type="button" @onclick="GoBack">Back</button>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p class="text-danger mt-2">@errorMessage</p>
+        }
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private PostDto? post;
+    private UserDto? author;
+    private List<CommentDto> comments = new();
+    private CreateCommentDto newComment = new();
+    private bool loading = true;
+    private bool savingComment = false;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        loading = true;
+        errorMessage = null;
+
+        post = await PostService.GetByIdAsync(Id);
+
+        if (post is not null)
+        {
+            try
+            {
+                author = await UserService.GetByIdAsync(post.UserId);
+            }
+            catch
+            {
+                author = null;
+            }
+
+            var allComments = await CommentService.GetAllAsync();
+            comments = allComments.Where(c => c.PostId == post.Id).ToList();
+
+            newComment = new CreateCommentDto
+            {
+                PostId = post.Id,
+                UserId = 1, 
+                Body = ""
+            };
+        }
+
+        loading = false;
+    }
+
+    private async Task HandleAddComment()
+    {
+        if (post is null) return;
+
+        try
+        {
+            savingComment = true;
+            errorMessage = null;
+
+            newComment.PostId = post.Id;
+
+            var created = await CommentService.AddAsync(newComment);
+
+            comments.Add(created);
+
+            newComment.Body = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            savingComment = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/posts");
+    }
+}

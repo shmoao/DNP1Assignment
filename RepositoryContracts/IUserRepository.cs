@@ -1,5 +1,6 @@
-﻿namespace RepositoryContracts;
-using Entities;
+﻿using Entities;
+
+namespace RepositoryContracts;
 
 public interface IUserRepository
 {
@@ -8,4 +9,6 @@ public interface IUserRepository
     Task DeleteAsync(int id);
     Task<User> GetSingleAsync(int id);
     IQueryable<User> GetManyAsync();
+
+    Task<User?> GetByUserNameAsync(string userName); 
 }

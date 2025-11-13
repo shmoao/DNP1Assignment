@@ -1,0 +1,46 @@
+﻿@page "/users"
+
+@using ApiContracts
+@using WebClient.HttpServices
+
+@inject IUserService UserService
+
+<h3>Users</h3>
+
+@if (users is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!users.Any())
+{
+    <p>No users found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>Username</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var u in users)
+        {
+            <tr>
+                <td>@u.Id</td>
+                <td>@u.UserName</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IReadOnlyList<UserDto>? users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await UserService.GetAllAsync();
+    }
+}

@@ -1,0 +1,51 @@
+﻿@page "/comments"
+
+@using ApiContracts
+@using WebClient.HttpServices
+@inject ICommentService CommentService
+
+<h3>Comments</h3>
+
+@if (comments is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!comments.Any())
+{
+    <p>No comments found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>PostId</th>
+            <th>UserId</th>
+            <th>Body</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var c in comments)
+        {
+            <tr>
+                <td>@c.Id</td>
+                <td>@c.PostId</td>
+                <td>@c.UserId</td>
+                <td>@c.Body</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<a class="btn btn-primary" href="/comments/create">Create comment</a>
+
+@code {
+    private IReadOnlyList<CommentDto>? comments;
+
+    protected override async Task OnInitializedAsync()
+    {
+        comments = await CommentService.GetAllAsync();
+    }
+}

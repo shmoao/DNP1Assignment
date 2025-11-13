@@ -1,0 +1,59 @@
+﻿@page "/posts"
+
+@using ApiContracts
+@using WebClient.HttpServices
+@inject IPostService PostService
+@inject NavigationManager Nav
+
+<h3>Posts</h3>
+
+<button class="btn btn-primary mb-3" @onclick="CreatePost">
+    Create new post
+</button>
+
+@if (posts is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!posts.Any())
+{
+    <p>No posts found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>UserId</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in posts)
+        {
+            <tr>
+                <td>@p.Id</td>
+                <td>
+                    <a href="@($"/posts/{p.Id}")">@p.Title</a>
+                </td>
+                <td>@p.UserId</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IReadOnlyList<PostDto>? posts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        posts = await PostService.GetAllAsync();
+    }
+
+    private void CreatePost()
+    {
+        Nav.NavigateTo("/posts/create");
+    }
+}

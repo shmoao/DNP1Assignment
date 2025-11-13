@@ -1,73 +1,87 @@
-﻿using RepositoryContracts;
+﻿using System.Text.Json;
+using Entities;
+using RepositoryContracts;
 
 namespace FileRepositories;
-
-using Entities;
-using System.Text.Json;
 
 public class UserFileRepository : IUserRepository
 {
     private readonly string filePath = "users.json";
-    
-    public UserFileRepository()
+
+    private readonly JsonSerializerOptions jsonOptions = new()
+    {
+        WriteIndented = true
+    };
+    private async Task<List<User>> ReadAllAsync()
     {
         if (!File.Exists(filePath))
         {
-            File.WriteAllText(filePath, "[]");
+            return new List<User>();
         }
+
+        await using FileStream fs = File.OpenRead(filePath);
+        var users = await JsonSerializer.DeserializeAsync<List<User>>(fs, jsonOptions);
+        return users ?? new List<User>();
     }
 
+    private async Task WriteAllAsync(List<User> users)
+    {
+        await using FileStream fs = File.Create(filePath);
+        await JsonSerializer.SerializeAsync(fs, users, jsonOptions);
+    }
+    
     public async Task<User> AddAsync(User user)
     {
-        string usersAsJson = await File.ReadAllTextAsync(filePath);
-        List<User> users = JsonSerializer.Deserialize<List<User>>(usersAsJson)!;
-        int maxId = users.Count > 0 ? users.Max(c => c.Id) : 1;
-        user.Id = maxId + 1;
+        var users = await ReadAllAsync();
+        user.Id = users.Any() ? users.Max(u => u.Id) + 1 : 1;
         users.Add(user);
-        usersAsJson = JsonSerializer.Serialize(users);
-        await File.WriteAllTextAsync(filePath, usersAsJson);
+        await WriteAllAsync(users);
         return user;
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        string usersAsJson = await File.ReadAllTextAsync(filePath);
-        List<User> users = JsonSerializer.Deserialize<List<User>>(usersAsJson)!;
-        
-        User? userToDelete = users.FirstOrDefault(u => u.Id == id);
-        if (userToDelete != null)
-        {
-            users.Remove(userToDelete);
-            usersAsJson = JsonSerializer.Serialize(users);
-            await File.WriteAllTextAsync(filePath, usersAsJson);
-        }
-    }
-
-    public async Task<User?> GetSingleAsync(int id)
-    {
-        string usersAsJson = await File.ReadAllTextAsync(filePath);
-        List<User> users = JsonSerializer.Deserialize<List<User>>(usersAsJson)!;
-        return users.FirstOrDefault(u => u.Id == id);
-    }
-
-    public IQueryable<User> GetManyAsync()
-    {
-        string usersAsJson = File.ReadAllTextAsync(filePath).Result;
-        List<User> users = JsonSerializer.Deserialize<List<User>>(usersAsJson)!;
-        return users.AsQueryable();
     }
 
     public async Task UpdateAsync(User user)
     {
-        string usersAsJson = await File.ReadAllTextAsync(filePath);
-        List<User> users = JsonSerializer.Deserialize<List<User>>(usersAsJson)!;
-        
+        var users = await ReadAllAsync();
         int index = users.FindIndex(u => u.Id == user.Id);
-        if (index != -1)
+        if (index == -1)
+            throw new InvalidOperationException($"User with ID '{user.Id}' not found");
+
+        users[index] = user;
+        await WriteAllAsync(users);
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var users = await ReadAllAsync();
+        int removed = users.RemoveAll(u => u.Id == id);
+        if (removed == 0)
+            throw new InvalidOperationException($"User with ID '{id}' not found");
+
+        await WriteAllAsync(users);
+    }
+
+    public async Task<User?> GetSingleAsync(int id)
+    {
+        var users = await ReadAllAsync();
+        return users.SingleOrDefault(u => u.Id == id);
+    }
+
+    public IQueryable<User> GetManyAsync()
+    {
+        if (!File.Exists(filePath))
         {
-            users[index] = user;
-            usersAsJson = JsonSerializer.Serialize(users);
-            await File.WriteAllTextAsync(filePath, usersAsJson);
+            return new List<User>().AsQueryable();
         }
+
+        string json = File.ReadAllText(filePath);
+        var users = JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
+        return users.AsQueryable();
+    }
+
+    public async Task<User?> GetByUserNameAsync(string userName)
+    {
+        var users = await ReadAllAsync();
+        return users.SingleOrDefault(
+            u => u.UserName.Equals(userName, StringComparison.OrdinalIgnoreCase));
     }
 }

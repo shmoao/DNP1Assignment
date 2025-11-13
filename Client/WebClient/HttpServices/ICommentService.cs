@@ -4,7 +4,8 @@ namespace WebClient.HttpServices;
 
 public interface ICommentService
 {
-    Task<CommentDto> AddAsync(CreateCommentDto request);
     Task<IReadOnlyList<CommentDto>> GetAllAsync();
     Task<CommentDto?> GetByIdAsync(int id);
+    Task<CommentDto> AddAsync(CreateCommentDto request);
+    Task DeleteAsync(int id);
 }

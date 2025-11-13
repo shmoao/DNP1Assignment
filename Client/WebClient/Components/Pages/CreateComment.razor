@@ -1,0 +1,76 @@
+﻿@page "/comments/create"
+
+@using ApiContracts
+@using WebClient.HttpServices
+@inject ICommentService CommentService
+@inject NavigationManager Nav
+
+<h3>Create comment</h3>
+
+@if (isSubmitting)
+{
+    <p><em>Saving...</em></p>
+}
+else
+{
+    <EditForm Model="model" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">PostId</label>
+            <InputNumber class="form-control" @bind-Value="model.PostId" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">UserId</label>
+            <InputNumber class="form-control" @bind-Value="model.UserId" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Body</label>
+            <InputTextArea class="form-control" @bind-Value="model.Body" />
+        </div>
+
+        <button class="btn btn-primary" type="submit">Create</button>
+        <button class="btn btn-secondary ms-2" type="button" @onclick="GoBack">Back</button>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p class="text-danger">@errorMessage</p>
+        }
+    </EditForm>
+}
+
+@code {
+    private CreateCommentDto model = new();
+    private bool isSubmitting;
+    private string? errorMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            await CommentService.AddAsync(model);
+
+            // po úspechu späť na zoznam
+            Nav.NavigateTo("/comments");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/comments");
+    }
+}

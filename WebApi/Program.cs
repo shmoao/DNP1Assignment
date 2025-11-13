@@ -14,7 +14,7 @@ var storage = builder.Configuration["Storage"] ?? "InMemory";
 
 if (storage.Equals("File", StringComparison.OrdinalIgnoreCase))
 {
-    builder.Services.AddSingleton<IUserRepository, FileRepositories.UserFileRepository>();
+    //builder.Services.AddSingleton<IUserRepository, FileRepositories.UserFileRepository>();
     builder.Services.AddSingleton<IPostRepository, FileRepositories.PostFileRepository>();
     builder.Services.AddSingleton<ICommentRepository, FileRepositories.CommentFileRepository>();
 }

@@ -1,0 +1,79 @@
+﻿@page "/posts/create"
+
+@using ApiContracts
+@using WebClient.HttpServices
+@inject IPostService PostService
+@inject NavigationManager Nav
+
+<h3>Create post</h3>
+
+@if (isSubmitting)
+{
+    <p><em>Saving...</em></p>
+}
+else
+{
+    <EditForm Model="model" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Title</label>
+            <InputText class="form-control" @bind-Value="model.Title" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Body</label>
+            <InputTextArea class="form-control" @bind-Value="model.Body" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">UserId</label>
+            <InputNumber class="form-control" @bind-Value="model.UserId" />
+        </div>
+
+        <button class="btn btn-primary" type="submit">Create</button>
+        <button class="btn btn-secondary ms-2" type="button" @onclick="GoBack">Back</button>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p class="text-danger mt-2">@errorMessage</p>
+        }
+    </EditForm>
+}
+
+@code {
+    private CreatePostDto model = new()
+    {
+        UserId = 1 
+    };
+
+    private bool isSubmitting;
+    private string? errorMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            await PostService.AddAsync(model);
+
+            Nav.NavigateTo("/posts");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/posts");
+    }
+}
