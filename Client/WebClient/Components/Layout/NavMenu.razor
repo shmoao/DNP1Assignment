@@ -1,0 +1,97 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using WebClient.Auth
+@inject NavigationManager Nav
+@inject IAuthService AuthService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">WebClient</a>
+
+        <AuthorizeView>
+            <Authorized>
+                <span class="text-light me-3">
+                    Hello,
+                    @context.User.Identity?.Name
+                </span>
+                <button class="btn btn-sm btn-outline-light" @onclick="Logout">
+                    Logout
+                </button>
+            </Authorized>
+            <NotAuthorized>
+                <button class="btn btn-sm btn-outline-light" @onclick="@GoToLogin">
+                    Login
+                </button>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                Home
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                Counter
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="weather">
+                Weather
+            </NavLink>
+        </div>
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="users" Match="NavLinkMatch.Prefix">
+                        Users
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="posts" Match="NavLinkMatch.Prefix">
+                        Posts
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="comments" Match="NavLinkMatch.Prefix">
+                        Comments
+                    </NavLink>
+                </div>
+            </Authorized>
+
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <span class="nav-link disabled">
+                        (Login to see Users, Posts, Comments)
+                    </span>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+
+    </nav>
+</div>
+
+@code {
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/", true);
+    }
+
+    private void GoToLogin()
+    {
+        Nav.NavigateTo("/login");
+    }
+}

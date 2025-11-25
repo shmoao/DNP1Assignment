@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\ApiContracts\ApiContracts.csproj" />
+      <ProjectReference Include="..\..\InMemoryRepositories\InMemoryRepositories.csproj" />
+      <ProjectReference Include="..\..\RepositoryContracts\RepositoryContracts.csproj" />
+    </ItemGroup>
+
+</Project>
